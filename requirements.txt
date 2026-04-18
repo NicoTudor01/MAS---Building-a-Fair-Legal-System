@@ -1,0 +1,10 @@
+# requirements.txt
+# Lists the Python packages this project depends on.
+# To install everything at once, run:
+#   pip install -r requirements.txt
+#
+# Note: the LLMProxy client (llmproxy/) is included directly in the project
+# folder, so it does not need to be listed here.
+
+requests        # used by llmproxy to make HTTP calls to the BridgeLLM API
+python-dotenv   # loads API key and endpoint from the .env file

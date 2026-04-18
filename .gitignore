@@ -1,0 +1,14 @@
+# Secret credentials — never commit these
+.env
+LLMPROXY.env
+
+# The LLMProxy library folder (install from LLMProxy-main/py instead)
+LLMProxy-main/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
