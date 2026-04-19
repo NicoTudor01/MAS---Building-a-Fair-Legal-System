@@ -71,7 +71,7 @@ DEREK_CHAUVIN = Case(
         "Minneapolis police officer Derek Chauvin was charged following the death of George "
         "Floyd on May 25, 2020. Bystander video showed Chauvin kneeling on Floyd's neck for "
         "approximately nine minutes and twenty-nine seconds while Floyd was handcuffed and "
-        "face-down on the pavement. Floyd repeatedly said he could not breathe and lost "
+        "face down on the pavement. Floyd repeatedly said he could not breathe and lost "
         "consciousness. The medical examiner ruled the death a homicide."
     ),
     description=(
@@ -88,15 +88,15 @@ DEREK_CHAUVIN = Case(
 
 TAX_EVASION = Case(
     name="United States v. Defendant (1931)",
-    charges="Tax evasion — five counts of willful failure to pay federal income taxes",
+    charges="Tax evasion five counts of willful failure to pay federal income taxes",
     known_verdict="guilty",
     background=(
         "The defendant, a 32-year-old organized crime figure widely regarded as the "
         "most powerful underworld boss in a major American city, was indicted in 1931 "
         "on twenty-two counts of federal income tax evasion covering the years 1925 "
         "through 1929. Federal investigators could not prosecute the defendant for "
-        "the underlying criminal enterprises — bootlegging, illegal gambling, and "
-        "prostitution — because witnesses were too intimidated to testify and physical "
+        "the underlying criminal enterprises bootlegging, illegal gambling, and "
+        "prostitution because witnesses were too intimidated to testify and physical "
         "evidence was routinely destroyed. Instead, a special IRS task force spent "
         "three years reconstructing the defendant's finances using the 'net expenditures' "
         "method: totaling every documented purchase, payment, and cash outlay to prove "
@@ -112,7 +112,7 @@ TAX_EVASION = Case(
         "nonetheless taxable under federal law, and that the defendant's lavish "
         "lifestyle and large cash payments proved the receipt of substantial unreported "
         "income. The IRS estimated the defendant owed approximately $215,000 in unpaid "
-        "taxes — equivalent to several million dollars today."
+        "taxes equivalent to several million dollars today."
         "\n\nPROSECUTION EVIDENCE: Two cooperating bookkeepers from the defendant's "
         "gambling houses testified to the cash flow they personally recorded, identifying "
         "the defendant as the ultimate recipient of net profits. Documented expenditures "
@@ -126,7 +126,7 @@ TAX_EVASION = Case(
         "argued the sheer volume of cash expenditures was irreconcilable with any "
         "legitimate reported income."
         "\n\nDEFENSE EVIDENCE: The defense argued that no direct evidence linked the "
-        "defendant personally to any specific receipt of income — every transaction "
+        "defendant personally to any specific receipt of income every transaction "
         "was in cash and nothing was in the defendant's name. Defense counsel contended "
         "that the expenditures could have been funded by non-taxable gifts or loans "
         "from associates, none of whom were called to testify. The two cooperating "
@@ -135,10 +135,10 @@ TAX_EVASION = Case(
         "a jurisdictional argument: a prior meeting between a government attorney and "
         "the defendant's representative had allegedly produced an informal agreement "
         "that the defendant would plead to minor charges in exchange for no prison "
-        "time — a deal the government denied making but which the defense argued "
+        "time a deal the government denied making but which the defense argued "
         "constituted prosecutorial bad faith."
         "\n\nSTATISTICAL CONTEXT: The 'net expenditures' method of proving unreported "
-        "income has been upheld by federal courts but is inherently circumstantial — "
+        "income has been upheld by federal courts but is inherently circumstantial  "
         "it infers income from spending rather than tracing funds directly. Legal "
         "scholars have noted that the method places the burden on defendants to explain "
         "the source of every large expenditure, which critics argue effectively shifts "

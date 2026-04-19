@@ -4,6 +4,7 @@
 
 import json
 import re
+import time
 
 from llmproxy import LLMProxy
 
@@ -86,13 +87,16 @@ PERSONAS = [
 # ---------------------------------------------------------------------------
 
 class Juror:
-    def __init__(self, persona: dict, case: Case, api_key: str = "", api_key_label: str = ""):
+    def __init__(self, persona: dict, case: Case, api_key: str = "", api_key_label: str = "", run_id: str = ""):
         self.persona = persona
         self.case = case
         self.api_key = api_key
         self.api_key_label = api_key_label
+        self._run_id = run_id
         self.confidence = 0.5       # belief in guilt [0.0 – 1.0]
         self.reasoning = ""
+        self.initial_confidence = None  # snapshot after Phase 1
+        self.initial_reasoning = ""     # snapshot after Phase 1
         self.belief_trajectory = [] # confidence after each interaction
         print(f"  [{persona['display_name']}] using API key: {api_key_label or '(none)'}")
 
@@ -108,7 +112,7 @@ class Juror:
     def session_id(self) -> str:
         # Session IDs must not contain hyphens (LLMProxy requirement).
         case_tag = "".join(c for c in self.case.name if c.isalnum())[:20]
-        return f"juror{self.persona['id']}{self.persona['name']}{case_tag}"
+        return f"juror{self.persona['id']}{self.persona['name']}{case_tag}{self._run_id}"
 
 
     # Build a natural-language description of this juror from their persona 
@@ -139,7 +143,7 @@ class Juror:
             "dismiss. Do not give a generic, balanced answer. Commit to a position that "
             "reflects your character's worldview and give a very precise answer."
             " Give your decision confidently based on your persona's perspective with "
-            "a precision of 3 decimal places.\n"
+            "a precision of 3 decimal places and do not round your value.\n"
             "Always respond with a JSON object containing exactly two keys:\n"
             '  "confidence": a float between 0.000 and 1.000 representing your belief '
             "that the defendant IS guilty,\n"
@@ -218,6 +222,19 @@ class Juror:
             "Using Bayesian reasoning, update your confidence based on the strength "
             "and credibility of their argument. Consider whether their background "
             "introduces any bias. Respond with your updated JSON object."
+        )
+        result = self._call_llm(query, lastk=config.LAST_K)
+        self.confidence = float(result["confidence"])
+        self.reasoning = result["reasoning"]
+        self.belief_trajectory.append(self.confidence)
+
+    def final_statement(self) -> None:
+        """After all deliberations, commit to a final verdict with updated reasoning."""
+        query = (
+            f"You have now heard all other jurors' arguments in the case: {self.case.name}.\n\n"
+            "Reflect on everything you have heard during deliberations and give your "
+            "definitive final verdict. Commit fully to your position as the person you are. "
+            "Respond with your final JSON object."
         )
         result = self._call_llm(query, lastk=config.LAST_K)
         self.confidence = float(result["confidence"])
