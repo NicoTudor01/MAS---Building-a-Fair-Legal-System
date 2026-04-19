@@ -10,6 +10,7 @@
 #   /usr/bin/python3 main.py --case derek_chauvin
 
 import argparse
+import random
 
 from agents.juror import Juror, PERSONAS
 from cases.case_definitions import CASES
@@ -27,7 +28,14 @@ def run(case_key: str, communicate: bool, voting_method: str) -> None:
     print(f"{'='*60}\n")
 
     # --- Build all jurors for this case ---
-    jurors = [Juror(p, case) for p in PERSONAS]
+    # Jurors 1-4 each get a dedicated API key; juror 5 gets a random one.
+    def _key_for(juror_index: int) -> tuple:
+        if juror_index < 4:
+            return config.API_KEYS[juror_index], config.API_KEY_LABELS[juror_index]
+        idx = random.randrange(len(config.API_KEYS))
+        return config.API_KEYS[idx], config.API_KEY_LABELS[idx]
+
+    jurors = [Juror(p, case, api_key=_key_for(i)[0], api_key_label=_key_for(i)[1]) for i, p in enumerate(PERSONAS)]
 
     # --- Phase 1: every juror independently reads the case ---
     print("[Phase 1] Independent evaluations")
