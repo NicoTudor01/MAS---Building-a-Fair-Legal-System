@@ -12,3 +12,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Config file containing sensitive information
+config.py
