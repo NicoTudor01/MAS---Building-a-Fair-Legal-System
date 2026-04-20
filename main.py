@@ -21,7 +21,7 @@ from cases.case_definitions import CASES
 from voting.mechanisms import plurality_vote, social_welfare_vote, tournament_vote, slater_ranking
 import config
 
-from results.plotting import plot_multi_sentiment
+from results.plotting import plot_multi_sentiment, plot_bar_single
 
 
 counter = 1
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     if (args.communicate == True):
         for i in range(3):
             run(args.case, args.communicate, args.voting, data)   
+        plot_multi_sentiment(data)
     else:
         run(args.case, args.communicate, args.voting, data)
-
-    plot_multi_sentiment(data)
+        plot_bar_single(data)
