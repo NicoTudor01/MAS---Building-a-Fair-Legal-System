@@ -15,3 +15,5 @@ __pycache__/
 
 # Config file containing sensitive information
 config.py
+
+.venv/

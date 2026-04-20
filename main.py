@@ -8,7 +8,7 @@
 #   /usr/bin/python3 main.py --case oj_simpson --voting tournament
 #   /usr/bin/python3 main.py --case oj_simpson --voting slater
 #   /usr/bin/python3 main.py --case derek_chauvin
-#   /usr/bin/python3 main.py --case oj_simpson --communicate --voting plurality
+#   /usr/bin/python3 main.py --case tax_evasion --communicate --voting plurality
 
 
 import argparse
@@ -21,10 +21,13 @@ from cases.case_definitions import CASES
 from voting.mechanisms import plurality_vote, social_welfare_vote, tournament_vote, slater_ranking
 import config
 
-counter = 0
+from results.plotting import plot_multi_sentiment
 
 
-def run(case_key: str, communicate: bool, voting_method: str) -> None:
+counter = 1
+data = [[0 for _ in range(5)] for _ in range(4)]
+
+def run(case_key: str, communicate: bool, voting_method: str, data: list[list [int]]) -> None:
     global counter
     case = CASES[case_key]
 
@@ -52,28 +55,32 @@ def run(case_key: str, communicate: bool, voting_method: str) -> None:
     judge = Judge(case, api_key=config.API_KEYS[0], api_key_label=config.API_KEY_LABELS[0], run_id=run_id)
 
     # --- Phase 1: every juror independently reads the case (first run only) ---
-    if counter == 0:
+    if counter == 1:
         print("[Phase 1] Independent evaluations")
-        for j in jurors:
+        for i, j in enumerate(jurors):
             print(f"  {j.persona['display_name']} evaluating...", end=" ", flush=True)
             j.evaluate_case()
             j.initial_confidence = j.confidence
             j.initial_reasoning = j.reasoning
             print(f"confidence={j.confidence:.2f}  ({j.verdict})")
             time.sleep(0.15)
-
+            data[0][i] = j.confidence
+        
+    print(data)
     # --- Phase 2 (optional): judge-hosted pairwise deliberations ---
     if communicate:
         print("\n[Phase 2] Judge-hosted pairwise deliberations")
         judge.run_all_deliberations(jurors)
 
         print("\n[Phase 3] Final individual verdicts after deliberation")
-        for j in jurors:
+        for i, j in enumerate(jurors):
             print(f"  {j.persona['display_name']} deliberating final verdict...", end=" ", flush=True)
             j.final_statement()
             print(f"confidence={j.confidence:.3f}  ({j.verdict})")
             print(f"    \"{j.reasoning}\"")
             time.sleep(0.15)
+            data[counter][i] = j.confidence
+        counter += 1
 
     # --- Voting ---
     if voting_method == "plurality":
@@ -105,7 +112,6 @@ def run(case_key: str, communicate: bool, voting_method: str) -> None:
     print(f"  Known verdict              : {case.known_verdict.upper()}")
     print(f"  Correct: {'YES ✓' if final_verdict == case.known_verdict else 'NO  ✗'}")
     print(f"{'-'*60}\n")    
-    counter += 1
 
 
 if __name__ == "__main__":
@@ -121,6 +127,8 @@ if __name__ == "__main__":
 
     if (args.communicate == True):
         for i in range(3):
-            run(args.case, args.communicate, args.voting)   
+            run(args.case, args.communicate, args.voting, data)   
     else:
-        run(args.case, args.communicate, args.voting)
+        run(args.case, args.communicate, args.voting, data)
+
+    plot_multi_sentiment(data)
