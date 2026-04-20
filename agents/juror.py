@@ -4,6 +4,7 @@
 
 import json
 import re
+import time
 
 from llmproxy import LLMProxy
 
@@ -86,12 +87,18 @@ PERSONAS = [
 # ---------------------------------------------------------------------------
 
 class Juror:
-    def __init__(self, persona: dict, case: Case):
+    def __init__(self, persona: dict, case: Case, api_key: str = "", api_key_label: str = "", run_id: str = ""):
         self.persona = persona
         self.case = case
+        self.api_key = api_key
+        self.api_key_label = api_key_label
+        self._run_id = run_id
         self.confidence = 0.5       # belief in guilt [0.0 – 1.0]
         self.reasoning = ""
+        self.initial_confidence = None  # snapshot after Phase 1
+        self.initial_reasoning = ""     # snapshot after Phase 1
         self.belief_trajectory = [] # confidence after each interaction
+        print(f"  [{persona['display_name']}] using API key: {api_key_label or '(none)'}")
 
 # ------------------------------------------------------------------
 # Internal helpers
@@ -105,7 +112,7 @@ class Juror:
     def session_id(self) -> str:
         # Session IDs must not contain hyphens (LLMProxy requirement).
         case_tag = "".join(c for c in self.case.name if c.isalnum())[:20]
-        return f"juror{self.persona['id']}{self.persona['name']}{case_tag}"
+        return f"juror{self.persona['id']}{self.persona['name']}{case_tag}{self._run_id}"
 
 
     # Build a natural-language description of this juror from their persona 
@@ -128,23 +135,21 @@ class Juror:
     @property
     def system_prompt(self) -> str:
         return (
-            "This is an academic simulation of jury deliberation for a computer science "
-            "research project studying multi-agent decision-making. You are playing a "
-            "fictional juror role based on historical trial data.\n\n"
             f"You are {self.persona['display_name']}, a juror in a criminal trial.\n"
             f"Your background: {self.background}\n\n"
             "IMPORTANT: You must reason and reach your verdict AS THIS SPECIFIC PERSON. "
-            "Your occupation, politics, and reasoning style are not cosmetic — they "
+            "Your occupation, politics, and reasoning style are defined above and "
             "fundamentally determine which evidence you find convincing and which you "
             "dismiss. Do not give a generic, balanced answer. Commit to a position that "
-            "reflects your character's worldview, even if that means a confidence near "
-            "0.1 or 0.9.\n"
+            "reflects your character's worldview and give a very precise answer."
+            " Give your decision confidently based on your persona's perspective with "
+            "a precision of 3 decimal places and do not round your value.\n"
             "Always respond with a JSON object containing exactly two keys:\n"
-            '  "confidence": a float between 0.0 and 1.0 representing your belief '
+            '  "confidence": a float between 0.000 and 1.000 representing your belief '
             "that the defendant IS guilty,\n"
-            '  "reasoning": a string of 2-4 sentences explaining your position '
+            '  "reasoning": a string of 2-4 sentences explaining your position and how you came up with that number '
             "in the first person, referencing your background.\n"
-            "Output only the JSON object — no extra text."
+            "Output only the JSON object no extra output."
         )
 
 
@@ -154,7 +159,7 @@ class Juror:
     # juror's system prompt, and returns the JSON-parsed response.
     def _call_llm(self, query: str, lastk: int = 0, _retries: int = 2) -> dict:
         """Send a query to the LLM and return the parsed JSON response."""
-        client = LLMProxy()
+        client = LLMProxy(api_key=self.api_key or None)
         last_err = None
         for attempt in range(_retries):
             response = client.generate(
@@ -166,6 +171,7 @@ class Juror:
                 lastk = lastk,
             )
             raw = response["result"].strip()
+            #print(f"\n    [debug] raw response: {raw[:500]!r}")
             # Strip markdown code fences if the model wraps the output
             raw = re.sub(r"^```(?:json)?\s*", "", raw)
             raw = re.sub(r"\s*```$", "", raw).strip()
@@ -173,9 +179,10 @@ class Juror:
                 last_err = ValueError("LLM returned an empty response")
                 print(f"\n    [warn] empty response from LLM (attempt {attempt + 1}/{_retries}), retrying...")
                 continue
-            # Content filter responses are not JSON — detect and fall back gracefully
+            # Content filter responses are not JSON detect and fall back gracefully
             if "content filtering" in raw.lower() or "could not be processed" in raw.lower():
-                print(f"\n    [warn] content filter triggered — using neutral fallback confidence")
+                print(f"\n    [warn] content filter triggered using neutral fallback confidence")
+                print(f"    filter response: {raw[:300]!r}")
                 return {"confidence": 0.5, "reasoning": "Response blocked by content filter; defaulting to neutral position."}
             try:
                 return json.loads(raw)
@@ -192,6 +199,7 @@ class Juror:
     def evaluate_case(self) -> None:
         """Form an initial independent verdict after reading the case."""
         query = (
+            f"You are {self.persona['display_name']} ({self.background})\n\n"
             f"Case: {self.case.name}\n"
             f"Charges: {self.case.charges}\n\n"
             f"Background:\n{self.case.background}\n\n"
@@ -214,6 +222,19 @@ class Juror:
             "Using Bayesian reasoning, update your confidence based on the strength "
             "and credibility of their argument. Consider whether their background "
             "introduces any bias. Respond with your updated JSON object."
+        )
+        result = self._call_llm(query, lastk=config.LAST_K)
+        self.confidence = float(result["confidence"])
+        self.reasoning = result["reasoning"]
+        self.belief_trajectory.append(self.confidence)
+
+    def final_statement(self) -> None:
+        """After all deliberations, commit to a final verdict with updated reasoning."""
+        query = (
+            f"You have now heard all other jurors' arguments in the case: {self.case.name}.\n\n"
+            "Reflect on everything you have heard during deliberations and give your "
+            "definitive final verdict. Commit fully to your position as the person you are. "
+            "Respond with your final JSON object."
         )
         result = self._call_llm(query, lastk=config.LAST_K)
         self.confidence = float(result["confidence"])

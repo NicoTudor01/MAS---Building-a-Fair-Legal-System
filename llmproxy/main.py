@@ -74,8 +74,20 @@ def _build_session() -> requests.Session:
 # -----------------------
 
 class LLMProxy:
-    def __init__(self) -> None:
-        self.config = ClientConfig.from_env()
+    def __init__(self, api_key: Optional[str] = None) -> None:
+        if api_key is not None:
+            # Load endpoint from env without requiring LLMPROXY_API_KEY
+            cwd_env = Path.cwd() / ".env"
+            load_dotenv(dotenv_path=cwd_env, override=True)
+            endpoint = os.getenv("LLMPROXY_ENDPOINT")
+            if not endpoint:
+                raise ValueError(
+                    "LLMProxy configuration error:\n"
+                    "Missing LLMPROXY_ENDPOINT in .env file.\n"
+                )
+            self.config = ClientConfig(endpoint=endpoint, api_key=api_key)
+        else:
+            self.config = ClientConfig.from_env()
         self.session = _build_session()
 
     def _headers(self, request_type: str, extra: Optional[Dict[str, str]] = None) -> Dict[str, str]:

@@ -2,11 +2,26 @@
 Central configuration for the Fair Legal System MAS.
 """
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
+
 # ---------------------------------------------------------------------------
 # BridgeLLM Proxy (NAT Lab, Tufts)
 # Docs: https://github.com/Tufts-University/LLMProxy
+# One key per group member; jurors 1–4 get a dedicated key each.
+# Juror 5 is assigned a key randomly at runtime (see main.py).
 # ---------------------------------------------------------------------------
-API_KEY = "externalUserBasic-k9t4j4-5ZSqjWJojeedD1VUaB6v1DFMjsEOxezo6CIuKe71"
+API_KEY_LABELS = [
+    "LLMPROXY_API_KEY_1",
+    "LLMPROXY_API_KEY_2",
+    "LLMPROXY_API_KEY_3",
+    "LLMPROXY_API_KEY_4",
+]
+
+API_KEYS = [os.getenv(label, "") for label in API_KEY_LABELS]
 
 # Available models (default plan):
 #   "4o-mini"                                  – OpenAI GPT-4o mini
