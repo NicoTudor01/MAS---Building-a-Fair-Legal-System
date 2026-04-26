@@ -1,14 +1,14 @@
 # Main entry point for the Fair Legal System simulation.
 #
 # Run with:
-#   /usr/bin/python3 main.py                   
-#   /usr/bin/python3 main.py --case oj_simpson 
-#   /usr/bin/python3 main.py --case oj_simpson --voting plurality
-#   /usr/bin/python3 main.py --case oj_simpson --voting social_welfare
-#   /usr/bin/python3 main.py --case oj_simpson --voting tournament
-#   /usr/bin/python3 main.py --case oj_simpson --voting slater
-#   /usr/bin/python3 main.py --case derek_chauvin
-#   /usr/bin/python3 main.py --case tax_evasion --communicate --voting plurality
+#   /usr/local/bin/python3 main.py                   
+#   /usr/local/bin/python3 main.py --case oj_simpson 
+#   /usr/local/bin/python3 main.py --case oj_simpson --voting plurality
+#   /usr/local/bin/python3 main.py --case oj_simpson --voting social_welfare
+#   /usr/local/bin/python3 main.py --case oj_simpson --voting tournament
+#   /usr/local/bin/python3 main.py --case oj_simpson --voting slater
+#   /usr/local/bin/python3 main.py --case derek_chauvin
+#   /usr/local/bin/python3 main.py --case tax_evasion --communicate --voting plurality
 
 
 import argparse

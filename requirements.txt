@@ -8,3 +8,4 @@
 
 requests        # used by llmproxy to make HTTP calls to the BridgeLLM API
 python-dotenv   # loads API key and endpoint from the .env file
+matplotlib      # used by results/plotting.py for vote/accuracy visualizations
