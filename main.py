@@ -20,6 +20,7 @@ from agents.judge import Judge
 from cases.case_definitions import CASES
 from voting.mechanisms import plurality_vote, social_welfare_vote, tournament_vote, slater_ranking
 import config
+import uuid
 
 from results.plotting import plot_multi_sentiment, plot_bar_single
 
@@ -41,7 +42,8 @@ def run(case_key: str, communicate: bool, voting_method: str, data: list[list [i
     # Jurors 1-4 each get a dedicated API key; juror 5 gets a random one.
     # A unique run_id is generated once per run so every agent starts with
     # a fresh server-side session (clearing the LLM's conversation cache).
-    run_id = str(int(time.time()))
+    # run_id = str(int(time.time()))
+    run_id = uuid.uuid4().hex
 
     def _key_for(juror_index: int) -> tuple:
         if juror_index < 4:
@@ -49,7 +51,11 @@ def run(case_key: str, communicate: bool, voting_method: str, data: list[list [i
         idx = random.randrange(len(config.API_KEYS))
         return config.API_KEYS[idx], config.API_KEY_LABELS[idx]
 
-    jurors = [Juror(p, case, api_key=_key_for(i)[0], api_key_label=_key_for(i)[1], run_id=run_id) for i, p in enumerate(PERSONAS)]
+    # jurors = [Juror(p, case, api_key=_key_for(i)[0], api_key_label=_key_for(i)[1], run_id=run_id) for i, p in enumerate(PERSONAS)]
+    jurors = []
+    for i, p in enumerate(PERSONAS):
+        api_key, api_label = _key_for(i)
+        jurors.append(Juror(p, case, api_key=api_key, api_key_label=api_label, run_id=run_id))
 
     # Judge gets the first available API key
     judge = Judge(case, api_key=config.API_KEYS[0], api_key_label=config.API_KEY_LABELS[0], run_id=run_id)

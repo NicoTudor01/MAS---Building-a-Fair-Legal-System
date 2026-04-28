@@ -12,7 +12,7 @@ def plurality_vote(jurors) -> str:
 
 
 def social_welfare_vote(jurors) -> str:
-    # Average all confidence scores; if mean >= threshold → guilty.
+    # Average all confidence scores; if mean >= threshold  guilty.
     avg = sum(j.confidence for j in jurors) / len(jurors)
     return "guilty" if avg >= config.GUILT_THRESHOLD else "not_guilty"
 

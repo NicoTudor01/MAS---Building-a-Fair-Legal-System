@@ -71,13 +71,12 @@ PERSONAS = [
         "id": 5,
         "name": "Juror5",
         "display_name": "Juror 5",
-        "age": 27,
-        "gender": "Non-binary",
-        "occupation": "Graduate student in criminology",
-        "political_affiliation": "Independent",
-        "socioeconomic_status": "Low income",
-        "reasoning_style": "Analytical and research-oriented; relies on statistical "
-        "base rates, systemic patterns, and empirical evidence; distrusts anecdotal or emotional arguments.",
+        "age": 50,
+        "gender": "N/A",
+        "occupation": "N/A",
+        "political_affiliation": "N/A",
+        "socioeconomic_status": "N/A",
+        "reasoning_style": "Evidence only, no background."
     },
 ]
 
@@ -93,7 +92,7 @@ class Juror:
         self.api_key = api_key
         self.api_key_label = api_key_label
         self._run_id = run_id
-        self.confidence = 0.5       # belief in guilt [0.0 – 1.0]
+        self.confidence = 0.0
         self.reasoning = ""
         self.initial_confidence = None  # snapshot after Phase 1
         self.initial_reasoning = ""     # snapshot after Phase 1
@@ -139,11 +138,11 @@ class Juror:
             f"Your background: {self.background}\n\n"
             "IMPORTANT: You must reason and reach your verdict AS THIS SPECIFIC PERSON. "
             "Your occupation, politics, and reasoning style are defined above and "
-            "fundamentally determine which evidence you find convincing and which you "
-            "dismiss. Do not give a generic, balanced answer. Commit to a position that "
+            "meaningfully influence which evidence you find convincing and which you "
+            "dismiss. Do not give a generic, balanced answer. Reach a position, but allow reasonable uncertainty on a position that "
             "reflects your character's worldview and give a very precise answer."
             " Give your decision confidently based on your persona's perspective with "
-            "a precision of 3 decimal places and do not round your value.\n"
+            "a precision of 3 decimal places and do not round your value. Avoid using common default confidence values like 0.88, 0.90, or 0.50. Your confidence should vary meaningfully across runs.\n"
             "Always respond with a JSON object containing exactly two keys:\n"
             '  "confidence": a float between 0.000 and 1.000 representing your belief '
             "that the defendant IS guilty,\n"
@@ -205,7 +204,9 @@ class Juror:
             f"Background:\n{self.case.background}\n\n"
             f"Facts presented at trial:\n{self.case.description}\n\n"
             "Based solely on this evidence, what is your confidence the defendant "
-            "is guilty? Respond with a JSON object."
+            "is guilty? Before deciding, sample a slightly different interpretation of the evidence each run. "
+            "Your persona influences you, but does not completely determine your answer. "
+            "Small changes in confidence between runs are expected. Respond with a JSON object and remmeber your background."
         )
         result = self._call_llm(query, lastk=0)
         self.confidence = float(result["confidence"])
